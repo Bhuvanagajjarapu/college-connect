@@ -57,6 +57,8 @@ model User {
   sessions      Session[]
   ActivateToken   ActivateToken[]
   Post             Post[]
+  Comment       Comment[]
+  like     Like[]
  
   @@map("users")
 }
@@ -113,4 +115,29 @@ model Video {
   description String?
   postId      String
   Post        Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Comment {
+    id      String  @id @default(dbgenerated("concat('comment_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+    content String
+    createdAt DateTime @default(now())
+    authorId String
+    author  User @relation(fields: [authorId], references: [id], onDelete: Cascade)
+    postId  String
+    post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+    parentCommentId String?
+    parentComment Comment? @relation("CommentToComment", fields: [parentCommentId], references: [id], onDelete: Cascade)
+    replies  Comment[] @relation("CommentToComment")
+    like     Like[]
+}
+
+model Like {
+      id      String  @id @default(dbgenerated("concat('like_', replace(cast(gen_random_uuid() as text), '-', ''))")) @db.Text
+      createdAt   DateTime @default(now())
+      userId      String
+      user        User @relation(fields: [userId], references: [id], onDelete: Cascade)
+      postId  String
+      post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+      commentId String?
+      comment   Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
 }
